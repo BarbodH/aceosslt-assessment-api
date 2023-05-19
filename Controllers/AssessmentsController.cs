@@ -54,7 +54,13 @@ namespace AceOSSLT_AssessmentAPI.Controllers
             {
                 Type = targetAssessment.Type,
                 Name = targetAssessment.Name,
-                Questions = new List<QuestionDTO>()
+                Questions = new List<QuestionDTO>(),
+                Passage = new PassageDTO()
+                {
+                    AssessmentName = targetAssessment.Name,
+                    Title = targetAssessment.Passage.Title,
+                    Text = targetAssessment.Passage.Text
+                }
             };
 
             foreach (Question question in targetAssessment.Questions)
