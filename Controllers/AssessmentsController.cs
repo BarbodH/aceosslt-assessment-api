@@ -38,17 +38,43 @@ namespace AceOSSLT_AssessmentAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Assessment> GetAssessment(string name)
+        public ActionResult<AssessmentDTO> GetAssessment(string name)
         {
             // Server-side validation
             if (_db.Assessments.FirstOrDefault(a => a.Name.ToLower().Equals(name.ToLower())) == null)
                 return NotFound($"There is no assessment named '{name}' (case insensitive).");
 
-            return Ok(_db.Assessments
+            Assessment targetAssessment = _db.Assessments
                 .Include(a => a.Questions)
                     .ThenInclude(q => q.Options)
                 .Include(a => a.Passage)
-                .FirstOrDefault(a => a.Name.ToLower().Equals(name.ToLower())));
+                .FirstOrDefault(a => a.Name.ToLower().Equals(name.ToLower()));
+
+            AssessmentDTO assessmentDTO = new AssessmentDTO()
+            {
+                Type = targetAssessment.Type,
+                Name = targetAssessment.Name,
+                Questions = new List<QuestionDTO>()
+            };
+
+            foreach (Question question in targetAssessment.Questions)
+            {
+                QuestionDTO questionDTO = new QuestionDTO()
+                {
+                    AssessmentName = targetAssessment.Name,
+                    Text = question.Text,
+                    Options = new List<string>()
+                };
+                int answerIndex = -1;
+                for (int i = 0; i < question.Options.Count(); i++)
+                {
+                    questionDTO.Options.Add(question.Options[i].Text);
+                    answerIndex = question.Options[i].isCorrect ? i : answerIndex;
+                }
+                assessmentDTO.Questions.Add(questionDTO);
+            }
+
+            return Ok(assessmentDTO);
         }
 
         /// <summary>
